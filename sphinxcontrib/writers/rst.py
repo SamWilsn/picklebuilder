@@ -17,9 +17,12 @@ import os
 import sys
 import textwrap
 import logging
+from typing import Any
 
 from docutils import nodes, writers
 from docutils.nodes import fully_normalize_name
+
+import docutils_rst_writer.writer as rst_writer
 
 from sphinx import addnodes
 from sphinx.locale import admonitionlabels, _
@@ -32,52 +35,135 @@ def escape_uri(uri):
     return uri
 
 
-class RstWriter(writers.Writer):
+class RstWriter(rst_writer.Writer):
     supported = ('text',)
     settings_spec = ('No options here.', '', ())
     settings_defaults = {}
 
     output = None
 
-    def __init__(self, builder):
-        writers.Writer.__init__(self)
+    def __init__(self, builder: Any) -> None:
+        super().__init__()
         self.builder = builder
 
-    def translate(self):
+    def translate(self) -> None:
         visitor = RstTranslator(self.document, self.builder)
         self.document.walkabout(visitor)
-        self.output = visitor.body
+        self.output = "\n".join(visitor.lines)
 
 
-class RstTranslator(nodes.NodeVisitor):
-    sectionchars = '*=-~"+`'
+class RstTranslator(rst_writer.RstTranslator):
+    def __init__(self, document: nodes.document, builder: Any) -> None:
+        super().__init__(document)
 
-    def __init__(self, document, builder):
-        nodes.NodeVisitor.__init__(self, document)
-
-        self.document = document
         self.builder = builder
 
-        newlines = builder.config.text_newlines
-        if newlines == 'windows':
-            self.nl = '\r\n'
-        elif newlines == 'native':
-            self.nl = os.linesep
-        else:
-            self.nl = '\n'
-        self.sectionchars = builder.config.text_sectionchars
-        self.states = [[]]
-        self.stateindent = [0]
-        self.list_counter = []
-        self.list_formatter = []
-        self.sectionlevel = 0
-        self.table = None
-        if self.builder.config.rst_indent:
-            self.indent = self.builder.config.rst_indent
-        else:
-            self.indent = STDINDENT
-        self.wrapper = textwrap.TextWrapper(width=MAXWIDTH, break_long_words=False, break_on_hyphens=False)
+    def visit_compact_paragraph(self, node: nodes.Node) -> None:
+        self.visit_paragraph(node)
 
+    def depart_compact_paragraph(self, node: nodes.Node) -> None:
+        self.depart_paragraph(node)
+
+    def visit_versionmodified(self, node: nodes.Node) -> None:
+        self.write(f".. {node['type']}:: {node['version']}\n")
+        self.indent += 3
+
+    def depart_versionmodified(self, node: nodes.Node) -> None:
+        self.indent -= 3
+
+    def visit_index(self, node: nodes.Node) -> None:
+        raise nodes.SkipNode    # TODO
+
+    def visit_tabular_col_spec(self, node: nodes.Node) -> None:
+        raise nodes.SkipNode    # TODO
+
+    def visit_autosummary_table(self, node: nodes.Node) -> None:
+        raise nodes.SkipNode    # TODO
+
+    def visit_desc(self, node: nodes.Node) -> None:
+        if len(node.children) != 2:
+            raise NotImplementedError("desc with len(children) != 2")
+
+        signature = node.children[0]
+        if not isinstance(signature, addnodes.desc_signature):
+            raise NotImplementedError("desc with children[0] not signature")
+
+        content = node.children[1]
+        if not isinstance(content, addnodes.desc_content):
+            raise NotImplementedError("desc with children[0] not content")
+
+        after_name = False
+
+        self.write(f".. {node['domain']}:{node['objtype']}:: ")
+        self.indent += 6
+
+        for signature_child in signature.children:
+            if isinstance(signature_child, addnodes.desc_annotation):
+                if after_name:
+                    self.write("\n:annotation: ")
+                    signature_child.walkabout(self)
+                continue
+            elif isinstance(signature_child, addnodes.desc_name):
+                after_name = True
+            signature_child.walkabout(self)
+
+        self.indent -= 3
+
+        self.write("\n\n")
+        content.walkabout(self)
+        raise nodes.SkipChildren
+
+    def depart_desc(self, node: nodes.Node) -> None:
+        self.indent -= 3
+        self.write("\n")
+
+    def visit_desc_signature(self, node: nodes.Node) -> None:
+        raise nodes.SkipDeparture
+
+    def visit_desc_addname(self, node: nodes.Node) -> None:
+        raise nodes.SkipDeparture   # TODO
+
+    def visit_desc_name(self, node: nodes.Node) -> None:
+        raise nodes.SkipDeparture   # TODO
+
+    def visit_desc_content(self, node: nodes.Node) -> None:
+        raise nodes.SkipDeparture   # TODO
+
+    def visit_desc_annotation(self, node: nodes.Node) -> None:
+        raise nodes.SkipDeparture
+
+    def visit_desc_parameterlist(self, node: nodes.Node) -> None:
+        self.write("(")
+
+    def depart_desc_parameterlist(self, node: nodes.Node) -> None:
+        self.write(")")
+
+    def visit_desc_parameter(self, node: nodes.Node) -> None:
+        pass
+
+    def depart_desc_parameter(self, node: nodes.Node) -> None:
+        self.write(", ")
+
+    def visit_desc_returns(self, node: nodes.Node) -> None:
+        self.write(" -> ")
+        raise nodes.SkipDeparture
+
+    def visit_literal_block(self, node: nodes.Node) -> None:
+        try:
+            language = node["language"]
+        except KeyError:
+            language = None
+
+        super().visit_literal_block(node, language=language)
+
+    def visit_literal_strong(self, node: nodes.Node) -> None:
+        raise nodes.SkipDeparture   # TODO
+
+    def visit_literal_emphasis(self, node: nodes.Node) -> None:
+        raise nodes.SkipDeparture   # TODO
+
+
+class Temp:
     def log_warning(self, message):
         logger = logging.getLogger("sphinxcontrib.writers.rst")
         if len(logger.handlers) == 0:

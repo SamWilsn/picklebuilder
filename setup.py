@@ -34,7 +34,7 @@ reStructuredText file from Sphinx_ and outputs it as reStructuredText.
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
 '''
 
-requires = ['Sphinx>=1.4', 'docutils']
+requires = ['Sphinx>=1.4', 'docutils', 'docutils-rst-writer']
 
 setup(
     name='sphinxcontrib-restbuilder',
