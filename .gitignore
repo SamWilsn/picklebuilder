@@ -1,6 +1,6 @@
 build/
 dist/
 output/
-sphinxcontrib/__pycache__
-sphinxcontrib_restbuilder.egg-info
+picklebuilder.egg-info
 .tox/
+__pycache__

@@ -2,49 +2,45 @@
 
 from setuptools import setup, find_packages
 
-def get_restbuilder_version():
-    # load sphinxcontrib.restbuilder from local path.
+def get_picklebuilder_version():
+    # load picklebuilder.picklebuilder from local path.
     # (Lots of work, just to get the version info)
     from os.path import join, dirname
     import sys
-    restbuilder_path = join(dirname(__file__), 'sphinxcontrib', 'restbuilder.py')
+    picklebuilder_path = join(dirname(__file__), 'picklebuilder', 'picklebuilder.py')
     if sys.version_info >= (3, 5):
         # requires Python 3.5 or up.
         import importlib.util
-        spec = importlib.util.spec_from_file_location('sphinxcontrib.restbuilder', restbuilder_path)
-        restbuilder = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(restbuilder)
+        spec = importlib.util.spec_from_file_location('picklebuilder.picklebuilder', picklebuilder_path)
+        picklebuilder = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(picklebuilder)
     else:
         # Python 2.7 support
         import imp
-        restbuilder = imp.load_source('sphinxcontrib.restbuilder', restbuilder_path)
-    return restbuilder.__version__
+        picklebuilder = imp.load_source('picklebuilder.picklebuilder', picklebuilder_path)
+    return picklebuilder.__version__
+
 
 long_desc = '''
-Sphinx_ extension to build and write reStructuredText_ (reST / rst) files.
-
-This extension is in particular useful to use in combination with the autodoc
-extension to automatically generate documentation for use by any rst parser
-(such as the GitHub wiki, which does not support the advanced Sphinx directives).
+Sphinx_ extension to build and write pickle files.
 
 In itself, the extension is fairly straightforward -- it takes the parsed
-reStructuredText file from Sphinx_ and outputs it as reStructuredText.
+reStructuredText file from Sphinx_ and pickles it.
 
 .. _Sphinx: http://sphinx-doc.org/
-.. _reStructuredText: http://docutils.sourceforge.net/rst.html
 '''
 
-requires = ['Sphinx>=1.4', 'docutils', 'docutils-rst-writer']
+requires = ['Sphinx>=4.0', 'docutils']
 
 setup(
-    name='sphinxcontrib-restbuilder',
-    version=get_restbuilder_version(),
-    url='https://github.com/sphinx-contrib/restbuilder',
-    download_url='http://pypi.python.org/pypi/sphinxcontrib-restbuilder',
+    name='picklebuilder',
+    version=get_picklebuilder_version(),
+    url='https://github.com/SamWilsn/picklebuilder',
+    download_url='http://pypi.python.org/pypi/picklebuilder',
     license='BSD 2-Clause',
-    author='Freek Dijkstra',
-    author_email='freek@macfreek.nl',
-    description='Sphinx extension to output reST files.',
+    author='Sam Wilson',
+    author_email='sam.wilson@mesh.xyz',
+    description='Sphinx extension to output pickle files.',
     long_description=long_desc,
     zip_safe=False,
     classifiers=[
@@ -54,16 +50,14 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Topic :: Documentation :: Sphinx',
         'Topic :: Software Development :: Documentation',
         'Topic :: Text Processing :: Markup :: reStructuredText',
     ],
     platforms='any',
-    python_requires='>=2.7, !=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
+    python_requires='>=3.7',
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
     install_requires=requires,
-    namespace_packages=['sphinxcontrib'],
 )
