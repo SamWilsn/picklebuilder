@@ -13,7 +13,7 @@ from __future__ import (print_function, unicode_literals, absolute_import)
 
 from os import path
 
-from docutils.io import BinaryFileOutput
+from gzip import GzipFile
 
 from sphinx.builders import Builder
 from sphinx.util.osutil import ensuredir
@@ -77,7 +77,7 @@ class PickleBuilder(Builder):
     def write_doc(self, docname, doctree):
         outfilename = path.join(self.outdir, self.file_transform(docname))
         ensuredir(path.dirname(outfilename))
-        destination = BinaryFileOutput(destination_path=outfilename)
+        destination = GzipFile(filename=outfilename, mode='wb', compresslevel=5)
 
         try:
             self.writer.write(doctree, destination)
