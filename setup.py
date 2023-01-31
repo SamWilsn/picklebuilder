@@ -39,7 +39,7 @@ setup(
     download_url='http://pypi.python.org/pypi/picklebuilder',
     license='BSD 2-Clause',
     author='Sam Wilson',
-    author_email='sam.wilson@mesh.xyz',
+    author_email='sam.wilson@ethereum.org',
     description='Sphinx extension to output pickle files.',
     long_description=long_desc,
     zip_safe=False,

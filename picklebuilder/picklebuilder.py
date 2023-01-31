@@ -5,16 +5,16 @@
 
     Sphinx extension to output pickle files.
 
-    .. moduleauthor:: Sam Wilson <sam.wilson@mesh.xyz>
+    .. moduleauthor:: Sam Wilson <sam.wilson@ethereum.org>
 
-    :copyright: Copyright 2021 by Sam Wilson and contributors.
+    :copyright: Copyright 2021-2023 by Sam Wilson and contributors.
     :license: BSD, see LICENSE.txt for details.
 """
 
 from __future__ import (print_function, unicode_literals, absolute_import)
 
-__version__ = '0.1.0'
-__author__ = 'Sam Wilson <sam.wilson@mesh.xyz> and contributors'
+__version__ = '0.2.0'
+__author__ = 'Sam Wilson <sam.wilson@ethereum.org> and contributors'
 
 
 def setup(app):
